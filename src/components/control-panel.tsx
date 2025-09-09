@@ -32,6 +32,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                             onClick={() => onAddSkeleton('vertical')}
                             className="flex-1"
                             size="sm"
+                            variant={"secondary"}
                         >
                             <Plus className="w-4 h-4 mr-2" />
                             Add Vertical
@@ -40,7 +41,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                             onClick={() => onAddSkeleton('horizontal')}
                             className="flex-1"
                             size="sm"
-                            variant="outline"
+                            variant={"secondary"}
                         >
                             <Plus className="w-4 h-4 mr-2" />
                             Add Horizontal
