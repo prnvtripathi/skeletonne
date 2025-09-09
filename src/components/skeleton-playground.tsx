@@ -5,6 +5,9 @@ import { ControlPanel } from './control-panel';
 import { PreviewArea } from './preview-area';
 import { CodeExport } from './code-export';
 import { ModeToggle } from './ui/mode-toggle';
+import Link from 'next/link';
+import { Github } from 'lucide-react';
+import { Button } from './ui/button';
 
 export interface SkeletonConfig {
     id: string;
@@ -61,7 +64,14 @@ const SkeletonPlayground: React.FC = () => {
                             Design and customize skeleton loaders, then export the code
                         </p>
                     </div>
-                    <ModeToggle />
+                    <div className='flex gap-2'>
+                        <ModeToggle />
+                        <Button variant="outline" size={"icon"} asChild>
+                            <Link href="https://github.com/prnvtripathi/skeletonne" target="_blank" rel="noopener noreferrer">
+                                <Github />
+                            </Link>
+                        </Button>
+                    </div>
                 </div>
             </header>
 
@@ -85,6 +95,20 @@ const SkeletonPlayground: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <footer>
+                <div className="text-center py-4 text-sm text-muted-foreground">
+                    &copy; {new Date().getFullYear()} Made with 💀 by {' '}
+                    <Link
+                        href="https://pranavtripathi.me"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className='underline hover:text-foreground transition-colors'
+                    >
+                        Pranav Tripathi
+                    </Link>
+                </div>
+            </footer>
         </main>
     );
 };
