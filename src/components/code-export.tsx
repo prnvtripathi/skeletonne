@@ -109,44 +109,53 @@ export const CodeExport: React.FC<CodeExportProps> = ({ state }) => {
     const generateCode = () => {
         const { skeletons } = state;
 
-        // Group skeletons by orientation
-        const verticalSkeletons = skeletons.filter(s => s.orientation === 'vertical');
+        // Group horizontal skeletons by rowId
         const horizontalSkeletons = skeletons.filter(s => s.orientation === 'horizontal');
+        const horizontalRows = horizontalSkeletons.reduce((acc, skeleton) => {
+            const rowId = skeleton.rowId || 'default';
+            if (!acc[rowId]) acc[rowId] = [];
+            acc[rowId].push(skeleton);
+            return acc;
+        }, {} as Record<string, typeof horizontalSkeletons>);
 
-        const generateSkeletonElements = (skeletons: typeof state.skeletons, indent: string = '  ') => {
-            return skeletons.map((skeleton) => {
-                const widthClass = convertToTailwindClass(skeleton.width, 'width');
-                const heightClass = convertToTailwindClass(skeleton.height, 'height');
-                return `${indent}<Skeleton className="animate-pulse ${widthClass} ${heightClass}" />`;
-            }).join('\n');
+        const generateSkeletonElement = (skeleton: typeof skeletons[0], indent: string = '  ', isHorizontal = false) => {
+            const widthClass = convertToTailwindClass(skeleton.width, 'width');
+            const heightClass = convertToTailwindClass(skeleton.height, 'height');
+            const rounded = skeleton.borderRadius === 'full' ? 'rounded-full' : skeleton.borderRadius === 'none' ? 'rounded-none' : `rounded-${skeleton.borderRadius}`;
+            const bg = skeleton.color ? `bg-[${skeleton.color}]` : '';
+            const flexClass = isHorizontal ? ' flex-1 min-w-0' : '';
+            return `${indent}<Skeleton className="animate-pulse${flexClass} ${rounded} ${bg} ${widthClass} ${heightClass}" />`;
         };
 
-        let layoutContent = '';
+        // Generate layout content in order, respecting rows
+        let layoutElements = [];
+        const processedHorizontalRows = new Set();
 
-        if (verticalSkeletons.length > 0 && horizontalSkeletons.length > 0) {
-            // Mixed layout
-            layoutContent = `        <div className="space-y-4">
-          {/* Vertical skeletons */}
-          <div className="space-y-4 flex flex-col">
-${generateSkeletonElements(verticalSkeletons, '            ')}
-          </div>
-          
-          {/* Horizontal skeletons */}
-          <div className="space-x-4 flex items-start">
-${generateSkeletonElements(horizontalSkeletons, '            ')}
-          </div>
-        </div>`;
-        } else if (verticalSkeletons.length > 0) {
-            // Only vertical
-            layoutContent = `        <div className="space-y-4 flex flex-col">
-${generateSkeletonElements(verticalSkeletons, '          ')}
-        </div>`;
-        } else if (horizontalSkeletons.length > 0) {
-            // Only horizontal
-            layoutContent = `        <div className="space-x-4 flex items-start">
-${generateSkeletonElements(horizontalSkeletons, '          ')}
-        </div>`;
+        for (let i = 0; i < skeletons.length; i++) {
+            const skeleton = skeletons[i];
+            
+            if (skeleton.orientation === 'vertical') {
+                layoutElements.push(generateSkeletonElement(skeleton, '          '));
+            } else if (skeleton.orientation === 'horizontal') {
+                const rowId = skeleton.rowId || `single-${skeleton.id}`;
+                
+                if (!processedHorizontalRows.has(rowId)) {
+                    processedHorizontalRows.add(rowId);
+                    const rowSkeletons = skeleton.rowId 
+                        ? horizontalRows[skeleton.rowId] 
+                        : [skeleton]; // Single horizontal skeleton without rowId
+                        
+                    const horizontalRow = `          <div className="flex items-start gap-4 w-full">
+${rowSkeletons.map(s => generateSkeletonElement(s, '            ', true)).join('\n')}
+          </div>`;
+                    layoutElements.push(horizontalRow);
+                }
+            }
         }
+
+        const layoutContent = `        <div className="space-y-4">
+${layoutElements.join('\n')}
+        </div>`;
 
         return `import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
